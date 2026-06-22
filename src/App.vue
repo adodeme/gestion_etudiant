@@ -1,199 +1,171 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from "vue"
 
-const nom = ref('')
-const prenom = ref('')
-const classe = ref('')
-const recherche = ref('')
+import Header from "./components/Header.vue"
+import Stats from "./components/Stats.vue"
+import StudentForm from "./components/StudentForm.vue"
+import StudentList from "./components/StudentList.vue"
 
-const etudiants = ref([])
+const etudiants = ref(
+  JSON.parse(
+    localStorage.getItem(
+      "students"
+    )
+  ) || []
+)
+const recherche = ref("")
+const filiereSelectionnee = ref("Toutes")
 
-function ajouterEtudiant() {
-  if (
-    nom.value.trim() === '' ||
-    prenom.value.trim() === '' ||
-    classe.value.trim() === ''
-  ) {
-    alert('Veuillez remplir tous les champs')
-    return
-  }
+// Sauvegarder les étudiants dans le localStorage à chaque modification
+watch(etudiants, () => {
+  localStorage.setItem("students", JSON.stringify(etudiants.value))
+}, { deep: true })
+
+function ajouterEtudiant(etudiant){
 
   etudiants.value.push({
     id: Date.now(),
-    nom: nom.value,
-    prenom: prenom.value,
-    classe: classe.value
+    ...etudiant
   })
 
-  nom.value = ''
-  prenom.value = ''
-  classe.value = ''
-}
-
-function supprimerEtudiant(id) {
-  etudiants.value = etudiants.value.filter(
-    etudiant => etudiant.id !== id
-  )
 }
 
 const etudiantsFiltres = computed(() => {
-  return etudiants.value.filter(etudiant =>
-    `${etudiant.nom} ${etudiant.prenom} ${etudiant.classe}`
+
+  let resultat = etudiants.value
+
+  if(
+    filiereSelectionnee.value !== "Toutes"
+  ){
+    resultat = resultat.filter(
+      e =>
+        e.filiere ===
+        filiereSelectionnee.value
+    )
+  }
+
+  return resultat.filter(
+    e =>
+      `${e.nom} ${e.prenom}`
       .toLowerCase()
-      .includes(recherche.value.toLowerCase())
+      .includes(
+        recherche.value.toLowerCase()
+      )
   )
+
 })
+
+const total = computed(
+  () => etudiantsFiltres.value.length
+)
+
+function supprimerEtudiant(id){
+
+  if(
+    !confirm(
+      "Supprimer cet étudiant ?"
+    )
+  ){
+    return
+  }
+
+  etudiants.value =
+    etudiants.value.filter(
+      e => e.id !== id
+    )
+
+}
+
+function modifierEtudiant(id){
+
+  const etudiant =
+    etudiants.value.find(
+      e => e.id === id
+    )
+
+  if(!etudiant) return
+
+  const nouveauNom =
+    prompt(
+      "Modifier le nom",
+      etudiant.nom
+    )
+
+  if(
+    nouveauNom &&
+    nouveauNom.trim() !== ""
+  ){
+    etudiant.nom = nouveauNom
+  }
+
+}
 </script>
 
 <template>
+
   <div class="container">
-    <h1>Gestion des Étudiants</h1>
 
-    <div class="formulaire">
-      <input
-        v-model="nom"
-        type="text"
-        placeholder="Nom"
-      />
+    <Header />
 
-      <input
-        v-model="prenom"
-        type="text"
-        placeholder="Prénom"
-      />
+    <Stats
+      :total="total"
+    />
 
-      <input
-        v-model="classe"
-        type="text"
-        placeholder="Classe"
-      />
+    <div class="search-box">
 
-      <button @click="ajouterEtudiant">
-        Ajouter
-      </button>
-    </div>
-
-    <div class="recherche">
       <input
         v-model="recherche"
-        type="text"
         placeholder="Rechercher un étudiant..."
       />
+
     </div>
 
-    <div class="liste">
-      <div
-        v-for="etudiant in etudiantsFiltres"
-        :key="etudiant.id"
-        class="carte"
+    <div class="filters">
+
+      <button
+        @click="
+          filiereSelectionnee='Toutes'
+        "
       >
-        <div>
-          <h3>
-            {{ etudiant.nom }}
-            {{ etudiant.prenom }}
-          </h3>
+        Toutes
+      </button>
 
-          <p>{{ etudiant.classe }}</p>
-        </div>
-
-        <button
-          class="supprimer"
-          @click="supprimerEtudiant(etudiant.id)"
-        >
-          Supprimer
-        </button>
-      </div>
-
-      <p
-        v-if="etudiantsFiltres.length === 0"
-        class="vide"
+      <button
+        @click="
+          filiereSelectionnee='Informatique'
+        "
       >
-        Aucun étudiant trouvé
-      </p>
+        Informatique
+      </button>
+
+      <button
+        @click="
+          filiereSelectionnee='Réseaux'
+        "
+      >
+        Réseaux
+      </button>
+
+      <button
+        @click="
+          filiereSelectionnee='Télécom'
+        "
+      >
+        Télécom
+      </button>
+
     </div>
+
+    <StudentForm
+      @addStudent="ajouterEtudiant"
+    />
+
+    <StudentList
+      :students="etudiantsFiltres"
+      @deleteStudent="supprimerEtudiant"
+      @editStudent="modifierEtudiant"
+    />
   </div>
 </template>
 
-<style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
 
-body {
-  font-family: Arial, sans-serif;
-}
-
-.container {
-  max-width: 1000px;
-  margin: 40px auto;
-  padding: 20px;
-}
-
-h1 {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.formulaire {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 15px;
-  margin-bottom: 25px;
-}
-
-input {
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-}
-
-button {
-  cursor: pointer;
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-}
-
-.formulaire button {
-  background: #729414;
-  color: white;
-}
-
-.recherche {
-  margin-bottom: 25px;
-}
-
-.recherche input {
-  width: 100%;
-}
-
-.liste {
-  display: grid;
-  gap: 15px;
-}
-
-.carte {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 1px solid #ddd;
-  padding: 18px;
-  border-radius: 10px;
-}
-
-.carte h3 {
-  margin-bottom: 5px;
-}
-
-.supprimer {
-  background: crimson;
-  color: white;
-}
-
-.vide {
-  text-align: center;
-  padding: 20px;
-}
-</style>
