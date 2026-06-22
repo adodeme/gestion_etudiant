@@ -19,18 +19,32 @@ function modifier(){
 
 <template>
 
-  <div class="student-card">
+<div class="student-card">
 
-    <div class="infos">
+    <div class="left">
 
-      <h3>
-        {{ student.nom }}
-        {{ student.prenom }}
-      </h3>
+        <img
+        :src="student.photo || 'https://via.placeholder.com/80'"
+        alt="Photo"
+        class="avatar"
+        />
 
-      <span class="filiere">
-        {{ student.filiere }}
-      </span>
+        <div class="infos">
+
+        <h3>
+            {{ student.nom }}
+            {{ student.prenom }}
+        </h3>
+
+        <span class="filiere">
+            {{ student.filiere }}
+        </span>
+
+        <p class="date">
+            Inscrit le {{ student.date }}
+        </p>
+
+        </div>
 
     </div>
 
@@ -107,5 +121,25 @@ function modifier(){
     flex-direction:column;
     gap:15px;
   }
+}
+
+.date{
+  margin-top:8px;
+  color:#94a3b8;
+  font-size:13px;
+}
+
+.left{
+  display:flex;
+  align-items:center;
+  gap:20px;
+}
+
+.avatar{
+  width:80px;
+  height:80px;
+  border-radius:50%;
+  object-fit:cover;
+  border:3px solid #e2e8f0;
 }
 </style>

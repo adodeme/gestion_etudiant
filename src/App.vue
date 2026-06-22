@@ -15,6 +15,29 @@ const etudiants = ref(
 )
 const recherche = ref("")
 const filiereSelectionnee = ref("Toutes")
+const nbInformatique = computed(() =>
+  etudiants.value.filter(
+    e => e.filiere === "Informatique"
+  ).length
+)
+
+const nbReseaux = computed(() =>
+  etudiants.value.filter(
+    e => e.filiere === "Réseaux"
+  ).length
+)
+
+const nbTelecom = computed(() =>
+  etudiants.value.filter(
+    e => e.filiere === "Télécom"
+  ).length
+)
+
+const nbGestion = computed(() =>
+  etudiants.value.filter(
+    e => e.filiere === "Gestion"
+  ).length
+)
 
 // Sauvegarder les étudiants dans le localStorage à chaque modification
 watch(etudiants, () => {
@@ -24,9 +47,10 @@ watch(etudiants, () => {
 function ajouterEtudiant(etudiant){
 
   etudiants.value.push({
-    id: Date.now(),
-    ...etudiant
-  })
+  id: Date.now(),
+  ...etudiant,
+  date: new Date().toLocaleDateString("fr-FR")
+})
 
 }
 
@@ -85,19 +109,37 @@ function modifierEtudiant(id){
 
   if(!etudiant) return
 
-  const nouveauNom =
-    prompt(
-      "Modifier le nom",
-      etudiant.nom
-    )
+  const nouveauNom = prompt(
+    "Nom",
+    etudiant.nom
+  )
+
+  const nouveauPrenom = prompt(
+    "Prénom",
+    etudiant.prenom
+  )
+
+  const nouvelleFiliere = prompt(
+    "Filière",
+    etudiant.filiere
+  )
+
+  const nouvellePhoto = prompt(
+    "URL de la photo",
+    etudiant.photo
+  )
 
   if(
     nouveauNom &&
-    nouveauNom.trim() !== ""
+    nouveauPrenom &&
+    nouvelleFiliere
   ){
     etudiant.nom = nouveauNom
+    etudiant.prenom = nouveauPrenom
+    etudiant.filiere = nouvelleFiliere
+    etudiant.photo = nouvellePhoto
   }
-
+  
 }
 </script>
 
@@ -109,6 +151,10 @@ function modifierEtudiant(id){
 
     <Stats
       :total="total"
+      :informatique="nbInformatique"
+      :reseaux="nbReseaux"
+      :telecom="nbTelecom"
+      :gestion="nbGestion"
     />
 
     <div class="search-box">

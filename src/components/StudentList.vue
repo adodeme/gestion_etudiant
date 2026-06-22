@@ -16,11 +16,11 @@ const emit = defineEmits([
   <div class="list">
 
     <StudentItem
-      v-for="student in students"
-      :key="student.id"
-      :student="student"
-      @deleteStudent="emit('deleteStudent',$event)"
-      @editStudent="emit('editStudent',$event)"
+        v-for="student in students"
+        :key="student.id"
+        :student="student"
+        @deleteStudent="emit('deleteStudent',$event)"
+        @editStudent="emit('editStudent',$event)"
     />
 
   </div>
